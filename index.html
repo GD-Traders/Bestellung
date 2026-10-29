@@ -1,0 +1,1416 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Bestellformular</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --forest:#153826;
+    --forest-light:#1f5138;
+    --forest-pale:#e7efe8;
+    --gold:#c1932e;
+    --gold-light:#e7c877;
+    --cream:#faf6ec;
+    --paper:#ffffff;
+    --ink:#1c2420;
+    --muted:#6c7568;
+    --line:#e4ddc8;
+    --danger:#a83b32;
+    --ok:#2f6b4f;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--cream);
+    color:var(--ink);
+    font-family:'Inter',system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:110px;
+  }
+  h1,h2,h3{font-family:'Fraunces',serif;margin:0;}
+  ::selection{background:var(--gold-light);}
+
+  /* ---------- Header ---------- */
+  .topbar{
+    background:var(--forest);
+    color:var(--cream);
+    padding:22px 18px 26px;
+    position:relative;
+    overflow:hidden;
+  }
+  .topbar::after{
+    content:"";
+    position:absolute; left:0; right:0; bottom:0;
+    height:4px;
+    background:linear-gradient(90deg,var(--gold) 0%, var(--gold-light) 50%, var(--gold) 100%);
+  }
+  .brand-row{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+  .brand-name{font-size:1.5rem;font-weight:600;letter-spacing:0.01em;}
+  .brand-tag{font-size:0.72rem;text-transform:uppercase;letter-spacing:0.14em;color:var(--gold-light);opacity:0.9;}
+  .field-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:18px;}
+  @media(max-width:600px){.field-grid{grid-template-columns:1fr 1fr;}}
+  @media(max-width:420px){.field-grid{grid-template-columns:1fr;}}
+  .field label{
+    display:block;font-size:0.72rem;text-transform:uppercase;letter-spacing:0.09em;
+    color:var(--gold-light);margin-bottom:5px;font-weight:600;
+  }
+  .field input{
+    width:100%;padding:11px 12px;border-radius:8px;border:1.5px solid transparent;
+    font-size:1rem;font-family:'Inter',sans-serif;background:var(--paper);color:var(--ink);
+  }
+  .field input:focus{outline:none;border-color:var(--gold);}
+  .field small{display:block;color:var(--gold-light);opacity:0.75;font-size:0.7rem;margin-top:4px;}
+
+  /* ---------- Search ---------- */
+  .search-wrap{
+    position:sticky; top:0; z-index:20;
+    background:var(--cream);
+    padding:14px 16px 10px;
+    border-bottom:1px solid var(--line);
+  }
+  .search-box{position:relative;}
+  .search-box input{
+    width:100%;padding:12px 14px 12px 40px;border-radius:10px;border:1.5px solid var(--line);
+    background:var(--paper);font-size:1rem;font-family:'Inter',sans-serif;color:var(--ink);
+  }
+  .search-box input:focus{outline:none;border-color:var(--forest-light);}
+  .search-icon{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:1rem;}
+  .clear-search{
+    position:absolute; right:8px; top:50%; transform:translateY(-50%);
+    background:none;border:none;color:var(--muted);font-size:1.1rem;cursor:pointer;
+    display:none; padding:6px;
+  }
+
+  /* ---------- Categories ---------- */
+  .catalog{padding:14px 16px 8px;max-width:760px;margin:0 auto;}
+  .category{
+    background:var(--paper); border:1px solid var(--line); border-radius:12px;
+    margin-bottom:12px; overflow:hidden;
+  }
+  .cat-head{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:14px 16px;cursor:pointer;user-select:none;gap:10px;
+  }
+  .cat-head-left{display:flex;align-items:center;gap:10px;min-width:0;}
+  .cat-title{font-size:1.02rem;font-weight:600;font-family:'Fraunces',serif;color:var(--forest);}
+  .cat-count{
+    font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--muted);
+    background:var(--forest-pale);border-radius:20px;padding:2px 9px;flex-shrink:0;
+  }
+  .cat-count.has-selection{background:var(--gold);color:var(--forest);font-weight:700;}
+  .chevron{transition:transform 0.2s ease;color:var(--muted);flex-shrink:0;font-size:0.85rem;}
+  .category.open .chevron{transform:rotate(90deg);}
+  .cat-body{max-height:0;overflow:hidden;transition:max-height 0.25s ease;}
+  .category.open .cat-body{max-height:none;}
+  .flat-list{
+    max-height:none;overflow:visible;
+    background:var(--paper); border:1px solid var(--line); border-radius:12px;
+  }
+  .flat-list .item-row:first-child{border-top:none;}
+  .item-row{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:11px 16px;border-top:1px solid var(--line);
+  }
+  .item-row.selected{background:var(--forest-pale);}
+  .item-name{font-size:0.93rem;line-height:1.35;color:var(--ink);}
+  .item-row.selected .item-name{font-weight:600;color:var(--forest);}
+  .stepper{display:flex;align-items:center;gap:0;flex-shrink:0;}
+  .stepper button{
+    width:32px;height:32px;border-radius:8px;border:1.5px solid var(--line);
+    background:var(--paper);color:var(--forest);font-size:1.1rem;font-weight:700;
+    cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;
+  }
+  .stepper button:active{background:var(--forest-pale);}
+  .stepper .qty{
+    width:34px;text-align:center;font-family:'JetBrains Mono',monospace;font-weight:700;
+    font-size:0.95rem;color:var(--forest);
+  }
+  .no-results{padding:30px 10px;text-align:center;color:var(--muted);font-size:0.9rem;}
+
+  /* ---------- Sticky footer ---------- */
+  .footer-bar{
+    position:fixed;bottom:0;left:0;right:0;z-index:30;
+    background:var(--forest);color:var(--cream);
+    padding:12px 16px;display:flex;align-items:center;justify-content:space-between;gap:14px;
+    box-shadow:0 -4px 18px rgba(0,0,0,0.18);
+  }
+  .stamp{
+    width:52px;height:52px;border-radius:50%;border:2px solid var(--gold);
+    display:flex;align-items:center;justify-content:center;flex-direction:column;
+    transform:rotate(-6deg);flex-shrink:0;
+  }
+  .stamp .num{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:1.15rem;color:var(--gold-light);line-height:1;}
+  .stamp .unit{font-size:0.5rem;text-transform:uppercase;letter-spacing:0.06em;color:var(--gold-light);opacity:0.85;}
+  .footer-text{font-size:0.78rem;color:var(--gold-light);opacity:0.9;flex:1;min-width:0;}
+  .btn-primary{
+    background:var(--gold);color:var(--forest);border:none;border-radius:9px;
+    padding:13px 18px;font-size:0.95rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;
+    white-space:nowrap;
+  }
+  .btn-primary:disabled{opacity:0.45;cursor:not-allowed;}
+
+  /* ---------- Modal ---------- */
+  .overlay{
+    position:fixed;inset:0;background:rgba(21,56,38,0.55);z-index:50;
+    display:none;align-items:flex-end;justify-content:center;
+  }
+  .overlay.show{display:flex;}
+  .sheet{
+    background:var(--cream);width:100%;max-width:720px;max-height:88vh;
+    border-radius:18px 18px 0 0;overflow-y:auto;padding:20px 18px 24px;
+    animation:slideup 0.25s ease;
+  }
+  @keyframes slideup{from{transform:translateY(30px);opacity:0.4;}to{transform:translateY(0);opacity:1;}}
+  .sheet-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .sheet-head h2{font-size:1.25rem;color:var(--forest);}
+  .close-btn{background:none;border:none;font-size:1.4rem;color:var(--muted);cursor:pointer;padding:4px 8px;}
+  .review-meta{
+    background:var(--paper);border:1px solid var(--line);border-radius:10px;
+    padding:12px 14px;margin-bottom:14px;font-size:0.9rem;color:var(--forest);
+  }
+  .review-meta b{color:var(--ink);}
+  .review-list{background:var(--paper);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:16px;}
+  .review-row{
+    display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:10px 14px;border-top:1px solid var(--line);
+  }
+  .review-row:first-child{border-top:none;}
+  .review-row .rname{font-size:0.88rem;color:var(--ink);}
+  .review-row .rqty{
+    font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--forest);
+    background:var(--forest-pale);padding:3px 10px;border-radius:20px;font-size:0.82rem;flex-shrink:0;
+  }
+  .review-row .rremove{background:none;border:none;color:var(--danger);font-size:1.15rem;cursor:pointer;padding:2px 6px;flex-shrink:0;}
+  .empty-note{padding:18px;text-align:center;color:var(--muted);font-size:0.88rem;}
+  .send-btn{
+    width:100%;background:var(--forest);color:var(--cream);border:none;border-radius:10px;
+    padding:15px;font-size:1rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;
+    display:flex;align-items:center;justify-content:center;gap:8px;
+  }
+  .send-btn:disabled{opacity:0.5;cursor:not-allowed;}
+  .status-msg{margin-top:10px;font-size:0.85rem;text-align:center;color:var(--muted);}
+  .status-msg.err{color:var(--danger);}
+  .spinner{
+    width:16px;height:16px;border:2.5px solid rgba(250,246,236,0.35);border-top-color:var(--cream);
+    border-radius:50%;animation:spin 0.7s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* success overlay */
+  .success-box{text-align:center;padding:30px 16px;}
+  .success-icon{
+    width:64px;height:64px;border-radius:50%;background:var(--forest-pale);
+    display:flex;align-items:center;justify-content:center;margin:0 auto 16px;
+    font-size:2rem;color:var(--forest-light);
+  }
+  .success-box h2{color:var(--forest);margin-bottom:8px;}
+  .success-box p{color:var(--muted);font-size:0.92rem;margin:0 0 20px;}
+  .print-btn{width:100%;margin-top:10px;background:var(--paper);color:var(--forest);border:1.5px solid var(--forest);border-radius:10px;padding:13px;font-size:0.95rem;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;}
+  /* ---------- WhatsApp import ---------- */
+  .tool-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+  .tool-btn{background:var(--paper);border:1.5px solid var(--line);border-radius:8px;padding:9px 12px;font-size:0.82rem;color:var(--forest);cursor:pointer;font-weight:600;font-family:'Inter',sans-serif;}
+  .tool-btn.wa{border-color:#25D366;}
+  .tool-btn:disabled{opacity:0.5;cursor:wait;}
+  .wa-hint{font-size:0.85rem;color:var(--muted);margin:0 0 10px;line-height:1.45;}
+  .wa-input{width:100%;min-height:160px;padding:10px;border:1.5px solid var(--line);border-radius:8px;font-family:'Inter',sans-serif;font-size:0.9rem;resize:vertical;background:var(--paper);color:var(--ink);}
+  .wa-input:focus{outline:none;border-color:var(--forest-light);}
+  .wa-actions{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 12px;}
+  .wa-summary{font-size:0.85rem;color:var(--forest);margin:0 0 10px;line-height:1.45;}
+  .wa-row{padding:10px 12px;border-top:1px solid var(--line);}
+  .wa-row:first-child{border-top:none;}
+  .wa-row.unsure{background:#fbf3df;}
+  .wa-row.unmatched{background:#f8e6e3;}
+  .wa-orig{font-size:0.78rem;color:var(--muted);margin-bottom:6px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px;word-break:break-word;}
+  .wa-badge{font-size:0.64rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;padding:2px 7px;border-radius:20px;flex-shrink:0;}
+  .wa-badge.ok{background:var(--forest-pale);color:var(--ok);}
+  .wa-badge.unsure{background:var(--gold-light);color:var(--forest);}
+  .wa-badge.unmatched{background:#f1cfc9;color:var(--danger);}
+  .wa-ctrl{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+  .wa-ctrl select{flex:1 1 190px;min-width:0;padding:8px;border:1.5px solid var(--line);border-radius:6px;font-size:0.85rem;background:#fff;color:var(--ink);font-family:'Inter',sans-serif;}
+  .wa-num{display:flex;align-items:center;gap:4px;font-size:0.72rem;color:var(--muted);}
+  .wa-num input{width:58px;padding:7px 4px;border:1.5px solid var(--line);border-radius:6px;font-size:0.85rem;text-align:center;font-family:'Inter',sans-serif;}
+  .wa-check{display:flex;align-items:center;gap:8px;font-size:0.85rem;color:var(--forest);margin:4px 0 10px;}
+  .wa-ignored{font-size:0.8rem;color:var(--muted);margin-bottom:14px;}
+  .wa-ignored summary{cursor:pointer;}
+  .wa-ignored div{padding:3px 0 3px 12px;}
+  .send-btn.secondary{background:var(--paper);color:var(--forest);border:1.5px solid var(--forest);margin-top:10px;}
+  #printArea{display:none;}
+  @media print{
+    body{background:#fff !important;padding:0 !important;}
+    body > *:not(#printArea){display:none !important;}
+    #printArea{display:block !important;font-family:Arial,Helvetica,sans-serif;color:#000;padding:10mm;}
+    #printArea h1{font-size:20pt;margin:0 0 4pt;}
+    #printArea .pmeta{font-size:11pt;margin-bottom:12pt;}
+    #printArea table{width:100%;border-collapse:collapse;font-size:11pt;}
+    #printArea th,#printArea td{border:1px solid #444;padding:5pt 7pt;text-align:left;}
+    #printArea th{background:#eee;}
+    #printArea .q{text-align:right;width:55pt;}
+    #printArea .pnote{margin-top:12pt;font-size:11pt;}
+  }
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="brand-row">
+      <div class="brand-name">GD Traders</div>
+      <div class="brand-tag">Bestellformular</div>
+    </div>
+    <div class="field-grid">
+      <div class="field">
+        <label for="storeName">Store-Name *</label>
+        <input type="text" id="storeName" placeholder="Name eures Geschäfts" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="orderDate">Datum</label>
+        <input type="date" id="orderDate">
+      </div>
+      <div class="field">
+        <label for="fillerEmail">Deine E-Mail *</label>
+        <input type="email" id="fillerEmail" placeholder="für Rückfragen & eigene Kopie" autocomplete="off" required>
+      </div>
+    </div>
+  </div>
+
+  <div class="search-wrap">
+    <div class="search-box">
+      <span class="search-icon">&#128269;</span>
+      <input type="text" id="searchInput" placeholder="Artikel suchen…">
+      <button class="clear-search" id="clearSearch">&times;</button>
+    </div>
+    <div class="tool-row">
+      <button type="button" id="waOpenBtn" class="tool-btn wa">💬 WhatsApp-Bestellung einfügen</button>
+      <button type="button" id="loadPdfBtn" class="tool-btn">📄 Bestehende Bestellung bearbeiten (PDF hochladen)</button>
+      <input type="file" id="pdfUpload" accept="application/pdf" style="display:none">
+    </div>
+  </div>
+
+  <div class="catalog" id="catalog"></div>
+
+  <div class="footer-bar">
+    <div class="stamp">
+      <div class="num" id="stampCount">0</div>
+      <div class="unit">Artikel</div>
+    </div>
+    <div class="footer-text" id="footerText">Noch keine Artikel ausgewählt</div>
+    <button class="btn-primary" id="reviewBtn" disabled>Bestellung ansehen</button>
+  </div>
+
+  <!-- Review sheet -->
+  <div class="overlay" id="reviewOverlay">
+    <div class="sheet">
+      <div class="sheet-head">
+        <h2>Bestellung prüfen</h2>
+        <button class="close-btn" id="closeReview">&times;</button>
+      </div>
+      <div class="review-meta">
+        <div><b id="reviewStore">–</b></div>
+        <div id="reviewDate" style="color:var(--muted);font-size:0.82rem;"></div>
+      </div>
+      <div class="review-list" id="reviewList"></div>
+      <div class="field" style="margin-top:14px;">
+        <label for="orderComment">Anmerkung (optional)</label>
+        <textarea id="orderComment" rows="3" placeholder="z.B. Sonderwünsche, Lieferzeit, Hinweise…" style="width:100%;padding:10px;border:1.5px solid var(--line);border-radius:8px;font-family:'Inter',sans-serif;font-size:0.88rem;resize:vertical;box-sizing:border-box;"></textarea>
+      </div>
+      <button class="send-btn" id="sendBtn">Bestellung senden</button>
+      <button class="print-btn" id="printBtn">Bestellung drucken</button>
+      <div class="status-msg" id="statusMsg"></div>
+    </div>
+  </div>
+
+  <!-- WhatsApp import sheet -->
+  <div class="overlay" id="waOverlay">
+    <div class="sheet">
+      <div class="sheet-head">
+        <h2 id="waTitle">WhatsApp-Bestellung</h2>
+        <button class="close-btn" id="waClose">&times;</button>
+      </div>
+
+      <!-- Step 1: input -->
+      <div id="waStep1">
+        <p class="wa-hint">Nachricht aus WhatsApp kopieren und hier einfügen – oder den exportierten Chat (.txt / .zip) bzw. einen Screenshot hochladen. Pro Zeile ein Artikel, z.&nbsp;B. <i>„Okra 5“</i>, <i>„2 kg Ginger“</i>, <i>„Dhaniya 10 bund“</i>.</p>
+        <textarea id="waText" class="wa-input" placeholder="Okra 5&#10;Coriander 10&#10;Ginger 2 kg&#10;Kesar mango big 3 box"></textarea>
+        <div class="wa-actions">
+          <button type="button" class="tool-btn" id="waFileBtn">📎 Chat-Export / Screenshot hochladen</button>
+          <input type="file" id="waFile" accept=".txt,.zip,text/plain,application/zip,image/*" style="display:none">
+        </div>
+        <div class="status-msg" id="waStatus" style="text-align:left;margin:0 0 10px;"></div>
+        <button class="send-btn" id="waParseBtn">Artikel erkennen</button>
+      </div>
+
+      <!-- Step 2: review -->
+      <div id="waStep2" style="display:none;">
+        <p class="wa-summary" id="waSummary"></p>
+        <div class="review-list" id="waList"></div>
+        <details class="wa-ignored" id="waIgnoredBox" style="display:none;">
+          <summary id="waIgnoredSummary"></summary>
+          <div id="waIgnoredList"></div>
+        </details>
+        <label class="wa-check"><input type="checkbox" id="waReplace" checked> Bisherige Auswahl ersetzen (sonst hinzufügen)</label>
+        <label class="wa-check"><input type="checkbox" id="waNote" checked> Nicht zugeordnete Zeilen in die Anmerkung übernehmen</label>
+        <button class="send-btn" id="waApplyReview">Übernehmen &amp; Bestellung ansehen</button>
+        <button class="send-btn secondary" id="waApplyList">Nur in Liste übernehmen (selbst weiter anpassen)</button>
+        <button class="send-btn secondary" id="waBack">&larr; Text bearbeiten</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Success sheet -->
+  <div class="overlay" id="successOverlay">
+    <div class="sheet">
+      <div class="success-box">
+        <div class="success-icon">&#10003;</div>
+        <h2>Bestellung gesendet</h2>
+        <p id="successText">Die Bestellung wurde als PDF verschickt.</p>
+        <button class="btn-primary" id="printBtn2" style="width:100%;margin-bottom:10px;">Bestellung drucken</button>
+        <button class="btn-primary" id="viewPdfBtn" style="width:100%;margin-bottom:10px;">Meine Kopie (PDF) ansehen</button>
+        <button class="btn-primary" id="newOrderBtn" style="width:100%;">Neue Bestellung starten</button>
+      </div>
+    </div>
+  </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+/* ==========================================================
+   TARGET EMAIL — orders arrive here as PDF attachment
+   ========================================================== */
+const TARGET_EMAIL = "sales@gdtraders.de";
+
+// PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE (see setup instructions).
+// Looks like: https://script.google.com/macros/s/AKfycb.../exec
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxvAObJzAN51o7g8ESySwGzYxA2fUFmIx7sYqo1p3V92Ls7CZYr36WjFEHDGcEqLSpi/exec";
+
+// Sends the order email through a small Google Apps Script backend instead of
+// FormSubmit. FormSubmit's own servers were returning 503 errors and silently
+// dropping the PDF attachment on real orders — this replaces that dependency
+// with Google's own infrastructure (Gmail), which is far more reliable.
+// The PDF is base64-encoded and sent as JSON; Content-Type "text/plain" is
+// used on purpose so the browser treats this as a "simple request" and skips
+// the CORS preflight, which Apps Script web apps don't handle well.
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(String(reader.result).split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function sendOrderEmail(fields, fileBlob, fileName) {
+  if (!APPS_SCRIPT_URL || APPS_SCRIPT_URL.startsWith("PASTE_")) {
+    throw new Error("Apps-Script-URL ist noch nicht eingetragen (siehe Setup-Anleitung).");
+  }
+  const pdfBase64 = await blobToBase64(fileBlob);
+
+  const res = await fetch(APPS_SCRIPT_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({
+      to: TARGET_EMAIL,
+      subject: fields._subject,
+      store: fields['Store'],
+      orderNumber: fields['Bestell-Nr'],
+      date: fields['Datum'],
+      itemCount: fields['Anzahl Artikel'],
+      comment: fields['Anmerkung'] || '',
+      cc: fields['_cc'] || '',
+      fileName,
+      pdfBase64,
+    }),
+  });
+
+  let json;
+  try { json = await res.json(); } catch (e) { throw new Error("Ungültige Antwort vom Sende-Dienst."); }
+  if (!json.ok) throw new Error(json.error || "Senden fehlgeschlagen.");
+  return json;
+}
+
+/* ==========================================================
+   PRODUCT DATA — grouped by category. No supplier names.
+   ========================================================== */
+const CATALOG = [
+{ name:"Gemüse", supplier:"JJ Global Trader", items:[
+"Arvi","Ash Banana","Banana Flowers",
+"Green Chili","Red Chili",
+"Dudhi","Drumstick",
+"Eggplant",
+"Galka",
+"Garlic","Ginger",
+"Guwar Phali","Haldi",
+"Karela","Kola","Long Beans",
+"Lime",
+"Okra",
+"Onion Big","Onion Small","Papadi","Parwal",
+"Paneer",
+"Plantin Green","Plantin Yellow","Pink Ravaya","Stripe Ravaya",
+"Pooja Coconut",
+"Pumpkin",
+"Snake Gourd",
+"Suran",
+"Sweet Potato Purple","Sweet Potato Red","Sweet Potato White",
+"Steam Banana",
+"Thai Bananen","Thai Ravaya","Tindory","Turia","Valarica"
+]},
+{ name:"Obst & Tropische Früchte", supplier:"JJ Global Trader", items:[
+"Amla","Avocado","Chickoo","Coconut Drinking","Custard Apple","Guava","Jackfruit","Papaya Green","Ripe Papaya","Lychee"
+]},
+{ name:"Mango", supplier:"JJ Global Trader", items:[
+"Kesar Mango Small","Kesar Mango Big",
+"Alphonso Mango Small","Alphonso Mango Big",
+"Badami Mango Small","Badami Mango Big",
+"Langra Mango Small","Langra Mango Big",
+"Honey Mango Small","Honey Mango Big",
+"Chausa Mango Small","Chausa Mango Big",
+"Dasheri Mango Small","Dasheri Mango Big",
+"Green Mango","Amraplai Mango","Anwar Rathore Mango (Pakistan)","Brasilien Mango"
+]},
+{ name:"Kräuter & Blätter", supplier:"JJ Global Trader", items:[
+"Coriander","Mint","Methi","Drumstick Leaves","Gongura Leaves","Curry Leaves","Lalsaag","Poi Saag",
+"Betel Leaves","Banana Leaves","Mango Leaves",
+"Marigold Flowers","Lotus Flowers","Bel Patta","Tulsi Leaves","Durva Grass"
+]},
+{ name:"Süßigkeiten", supplier:"Transfood", items:[
+"Gulab Jam","Gulab Jam Cream","Laddu","Mithai Mix","Barfi","Rasagulla","Jilebi","Peda",
+"Gajar Halwa","Milk Cake","Kala Jamun","Mattri (Extra)","Cham Cham (Extra)","Besan Barfi",
+"Samosa","Spezial-Süßigkeiten"
+]},
+];
+
+/* ==========================================================
+   STATE
+   ========================================================== */
+const qtyState = {}; // key: "catIdx-itemIdx" -> qty (Stück/Boxen)
+const kgState = {}; // key: "catIdx-itemIdx" -> optional kg amount entered by customer
+let allItems = []; // flat list {key, name, cat}
+
+CATALOG.forEach((cat, ci) => {
+  cat.items.forEach((name, ii) => {
+    const key = ci + "-" + ii;
+    qtyState[key] = 0;
+    kgState[key] = 0;
+    allItems.push({key, name, cat: cat.name, supplier: cat.supplier});
+  });
+});
+
+/* ==========================================================
+   RENDER CATALOG
+   ========================================================== */
+const catalogEl = document.getElementById('catalog');
+
+function renderCatalog(filter) {
+  const f = (filter || "").trim().toLowerCase();
+  catalogEl.innerHTML = "";
+
+  const matchedItems = allItems.filter(it => !f || it.name.toLowerCase().includes(f));
+
+  if (matchedItems.length === 0) {
+    catalogEl.innerHTML = `<div class="no-results">Keine Artikel gefunden.</div>`;
+    return;
+  }
+
+  const body = document.createElement('div');
+  body.className = 'flat-list';
+
+  matchedItems.forEach(({name, key}) => {
+    const qty = qtyState[key];
+    const kg = kgState[key] || 0;
+    const row = document.createElement('div');
+    row.className = 'item-row' + ((qty > 0 || kg > 0) ? ' selected' : '');
+    row.innerHTML = `
+      <div class="item-name">${name}</div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div class="stepper">
+          <button class="dec" aria-label="weniger">&minus;</button>
+          <span class="qty">${qty}</span>
+          <button class="inc" aria-label="mehr">&plus;</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:4px;">
+          <input type="number" class="kg-input" min="0" step="0.5" placeholder="kg"
+            value="${kg > 0 ? kg : ''}"
+            style="width:52px;padding:6px 4px;border:1.5px solid var(--line);border-radius:6px;font-size:0.82rem;text-align:center;font-family:'Inter',sans-serif;">
+          <span style="font-size:0.72rem;color:var(--muted);">kg</span>
+        </div>
+      </div>
+    `;
+    row.querySelector('.dec').addEventListener('click', (e) => {
+      e.stopPropagation();
+      qtyState[key] = Math.max(0, qtyState[key] - 1);
+      updateAfterQtyChange();
+    });
+    row.querySelector('.inc').addEventListener('click', (e) => {
+      e.stopPropagation();
+      qtyState[key] = qtyState[key] + 1;
+      updateAfterQtyChange();
+    });
+    const kgInput = row.querySelector('.kg-input');
+    kgInput.addEventListener('click', (e) => e.stopPropagation());
+    kgInput.addEventListener('change', (e) => {
+      const v = parseFloat((e.target.value || "0").replace(',', '.'));
+      kgState[key] = (isNaN(v) || v < 0) ? 0 : v;
+      updateAfterQtyChange();
+    });
+    body.appendChild(row);
+  });
+
+  catalogEl.appendChild(body);
+}
+
+function updateAfterQtyChange() {
+  renderCatalog(document.getElementById('searchInput').value);
+  updateFooter();
+}
+
+/* ==========================================================
+   SEARCH
+   ========================================================== */
+const searchInput = document.getElementById('searchInput');
+const clearSearchBtn = document.getElementById('clearSearch');
+searchInput.addEventListener('input', () => {
+  clearSearchBtn.style.display = searchInput.value ? 'block' : 'none';
+  renderCatalog(searchInput.value);
+});
+clearSearchBtn.addEventListener('click', () => {
+  searchInput.value = "";
+  clearSearchBtn.style.display = 'none';
+  renderCatalog("");
+});
+
+/* ==========================================================
+   FOOTER SUMMARY
+   ========================================================== */
+const stampCount = document.getElementById('stampCount');
+const footerText = document.getElementById('footerText');
+const reviewBtn = document.getElementById('reviewBtn');
+
+function getSelectedItems() {
+  return allItems
+    .map(it => ({...it, qty: qtyState[it.key], kg: kgState[it.key] || 0}))
+    .filter(it => it.qty > 0 || it.kg > 0);
+}
+
+function updateFooter() {
+  const selected = getSelectedItems();
+  const totalBoxes = selected.reduce((s, it) => s + it.qty, 0);
+  stampCount.textContent = selected.length;
+  footerText.textContent = selected.length
+    ? `${selected.length} Artikel · ${totalBoxes} Einheiten insgesamt`
+    : "Noch keine Artikel ausgewählt";
+  reviewBtn.disabled = selected.length === 0;
+}
+
+/* ==========================================================
+   DATE DEFAULT
+   ========================================================== */
+const orderDateEl = document.getElementById('orderDate');
+(function setToday(){
+  const d = new Date();
+  const iso = d.toISOString().slice(0,10);
+  orderDateEl.value = iso;
+})();
+
+/* ==========================================================
+   REVIEW SHEET
+   ========================================================== */
+const reviewOverlay = document.getElementById('reviewOverlay');
+const reviewList = document.getElementById('reviewList');
+const reviewStoreEl = document.getElementById('reviewStore');
+const reviewDateEl = document.getElementById('reviewDate');
+const storeNameInput = document.getElementById('storeName');
+const statusMsg = document.getElementById('statusMsg');
+const sendBtn = document.getElementById('sendBtn');
+let lastPdfUrl = null;
+
+function fmtDate(iso) {
+  if (!iso) return "";
+  const [y,m,d] = iso.split('-');
+  return `${d}.${m}.${y}`;
+}
+
+function renderReview() {
+  const selected = getSelectedItems();
+  reviewStoreEl.textContent = storeNameInput.value.trim() || "(kein Store-Name eingegeben)";
+  reviewDateEl.textContent = "Datum: " + fmtDate(orderDateEl.value);
+  reviewList.innerHTML = "";
+
+  if (selected.length === 0) {
+    reviewList.innerHTML = `<div class="empty-note">Keine Artikel ausgewählt.</div>`;
+    return;
+  }
+
+  selected.forEach(it => {
+    const row = document.createElement('div');
+    row.className = 'review-row';
+    const parts = [];
+    if (it.qty > 0) parts.push(`${it.qty}×`);
+    if (it.kg > 0) parts.push(`${it.kg} kg`);
+    row.innerHTML = `
+      <div class="rname">${it.name}</div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span class="rqty">${parts.join(' · ')}</span>
+        <button class="rremove" aria-label="entfernen">&times;</button>
+      </div>
+    `;
+    row.querySelector('.rremove').addEventListener('click', () => {
+      qtyState[it.key] = 0;
+      kgState[it.key] = 0;
+      renderReview();
+      renderCatalog(searchInput.value);
+      updateFooter();
+    });
+    reviewList.appendChild(row);
+  });
+}
+
+reviewBtn.addEventListener('click', () => {
+  renderReview();
+  statusMsg.textContent = "";
+  statusMsg.className = "status-msg";
+  reviewOverlay.classList.add('show');
+});
+document.getElementById('closeReview').addEventListener('click', () => {
+  reviewOverlay.classList.remove('show');
+});
+
+/* ==========================================================
+   ORDER NUMBER
+   ========================================================== */
+function generateOrderNumber() {
+  const n = new Date();
+  const pad = (v) => String(v).padStart(2, '0');
+  return `GD-${n.getFullYear()}${pad(n.getMonth()+1)}${pad(n.getDate())}-${pad(n.getHours())}${pad(n.getMinutes())}${pad(n.getSeconds())}`;
+}
+
+/* ==========================================================
+   PDF GENERATION
+   ========================================================== */
+function buildPdf(storeName, dateStr, items, orderNumber, includeSupplier, comment) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+
+  doc.setFillColor(21, 56, 38);
+  doc.rect(0, 0, 595, 70, 'F');
+  doc.setTextColor(255,255,255);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(18);
+  doc.text('GD Traders — Bestellung', 40, 32);
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(230, 215, 170);
+  doc.text(`Bestell-Nr.: ${orderNumber}`, 40, 48);
+  doc.text(`Store: ${storeName}`, 40, 61);
+  doc.text(`Datum: ${dateStr}`, 300, 61);
+
+  const totalBoxes = items.reduce((s,it) => s + (it.qty || 0), 0);
+  const totalKg = items.reduce((s,it) => s + (it.kg || 0), 0);
+
+  // Internal copy (lands with sales@) is always sorted A–Z by article name.
+  // Customer-facing copy keeps the order the items were selected in.
+  const sortedItems = includeSupplier
+    ? [...items].sort((a, b) => a.name.localeCompare(b.name, 'de'))
+    : items;
+
+  if (includeSupplier) {
+    // Internal copy (for sales@gdtraders.de only) — includes supplier for backend use
+    const rows = sortedItems.map(it => [it.name, it.supplier, it.qty > 0 ? String(it.qty) : '-', it.kg > 0 ? String(it.kg) : '-']);
+    doc.autoTable({
+      startY: 90,
+      head: [['Artikel', 'Lieferant', 'Menge', 'Kg']],
+      body: rows,
+      styles: { fontSize: 9, cellPadding: 5 },
+      headStyles: { fillColor: [21,56,38], textColor: 255, fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [247,244,235] },
+      columnStyles: { 2: { halign: 'right', cellWidth: 45 }, 3: { halign: 'right', cellWidth: 45 } },
+      margin: { left: 40, right: 40 },
+    });
+  } else {
+    // Customer/employee-facing copy — never shows supplier names
+    const rows = items.map(it => [it.name, it.qty > 0 ? String(it.qty) : '-', it.kg > 0 ? String(it.kg) : '-']);
+    doc.autoTable({
+      startY: 90,
+      head: [['Artikel', 'Menge', 'Kg']],
+      body: rows,
+      styles: { fontSize: 9, cellPadding: 5 },
+      headStyles: { fillColor: [21,56,38], textColor: 255, fontStyle: 'bold' },
+      alternateRowStyles: { fillColor: [247,244,235] },
+      columnStyles: { 1: { halign: 'right', cellWidth: 50 }, 2: { halign: 'right', cellWidth: 50 } },
+      margin: { left: 40, right: 40 },
+    });
+  }
+
+  const finalY = doc.lastAutoTable.finalY + 20;
+  doc.setTextColor(28,36,32);
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(11);
+  let totalsLine = `Gesamt: ${items.length} Artikel · ${totalBoxes} Einheiten`;
+  if (totalKg > 0) totalsLine += ` · ${totalKg} kg`;
+  doc.text(totalsLine, 40, finalY);
+
+  if (comment && comment.trim()) {
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.text('Anmerkung:', 40, finalY + 22);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9.5);
+    const wrapped = doc.splitTextToSize(comment.trim(), 515);
+    doc.text(wrapped, 40, finalY + 36);
+  }
+
+  return doc;
+}
+
+/* ==========================================================
+   SUBMIT — generates PDF and emails it via FormSubmit
+   ========================================================== */
+function showSuccess(storeName, ccEmail, orderNumber) {
+  reviewOverlay.classList.remove('show');
+  let msg = `Bestell-Nr. ${orderNumber} — Die Bestellung von "${storeName}" wurde als PDF an ${TARGET_EMAIL} gesendet.`;
+  if (ccEmail) msg += ` Außerdem ging eine Kopie an ${ccEmail}.`;
+  document.getElementById('successText').textContent = msg;
+  document.getElementById('successOverlay').classList.add('show');
+}
+
+sendBtn.addEventListener('click', async () => {
+  const storeName = storeNameInput.value.trim();
+  const selected = getSelectedItems();
+
+  if (!storeName) {
+    statusMsg.textContent = "Bitte zuerst den Store-Namen oben eingeben.";
+    statusMsg.className = "status-msg err";
+    reviewOverlay.classList.remove('show');
+    storeNameInput.focus();
+    storeNameInput.scrollIntoView({behavior:'smooth', block:'center'});
+    return;
+  }
+  if (selected.length === 0) {
+    statusMsg.textContent = "Bitte mindestens einen Artikel auswählen.";
+    statusMsg.className = "status-msg err";
+    return;
+  }
+
+  const fillerEmailCheck = document.getElementById('fillerEmail').value.trim();
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!fillerEmailCheck || !emailPattern.test(fillerEmailCheck)) {
+    statusMsg.textContent = "Bitte deine E-Mail-Adresse eingeben (Pflichtfeld) — sonst kommt die Bestellung nicht an.";
+    statusMsg.className = "status-msg err";
+    reviewOverlay.classList.remove('show');
+    document.getElementById('fillerEmail').focus();
+    document.getElementById('fillerEmail').scrollIntoView({behavior:'smooth', block:'center'});
+    return;
+  }
+
+  sendBtn.disabled = true;
+  sendBtn.innerHTML = `<span class="spinner"></span> Wird gesendet…`;
+  statusMsg.textContent = "";
+  statusMsg.className = "status-msg";
+
+  const dateStr = fmtDate(orderDateEl.value);
+  const safeStore = storeName.replace(/[^a-z0-9]+/gi, '_');
+  const orderNumber = generateOrderNumber();
+  lastOrderNumber = orderNumber;
+  const fileName = `Bestellung_${orderNumber}_${safeStore}.pdf`;
+
+  try {
+    const comment = document.getElementById('orderComment').value.trim();
+
+    // One single PDF, sent identically to sales@ and CC'd to the customer/filler.
+    const orderDoc = buildPdf(storeName, dateStr, selected, orderNumber, false, comment);
+    const orderBlob = orderDoc.output('blob');
+
+    // "Meine Kopie (PDF) ansehen" opens this same PDF
+    if (lastPdfUrl) URL.revokeObjectURL(lastPdfUrl);
+    lastPdfUrl = URL.createObjectURL(orderBlob);
+
+    const fillerEmail = document.getElementById('fillerEmail').value.trim();
+
+    await sendOrderEmail({
+      _subject: `Neue Bestellung – ${orderNumber} – ${storeName} – ${dateStr}`,
+      'Store': storeName,
+      'Bestell-Nr': orderNumber,
+      'Datum': dateStr,
+      'Anzahl Artikel': String(selected.length),
+      'email': fillerEmail,
+      '_cc': fillerEmail,
+      'Anmerkung': comment,
+    }, orderBlob, fileName);
+
+    sendBtn.disabled = false;
+    sendBtn.textContent = "Bestellung senden";
+    showSuccess(storeName, fillerEmail, orderNumber);
+
+  } catch (err) {
+    console.error(err);
+    statusMsg.innerHTML =
+      `Senden fehlgeschlagen. Bitte Internetverbindung prüfen und erneut versuchen.<br>
+       Falls das öfter passiert, meldet euch bei Priyank.`;
+    statusMsg.className = "status-msg err";
+    sendBtn.disabled = false;
+    sendBtn.textContent = "Bestellung senden";
+  }
+});
+
+/* ==========================================================
+   PRINT — sofort ausdrucken (ohne Lieferant)
+   ========================================================== */
+let lastOrderNumber = null;
+function printOrder() {
+  const items = getSelectedItems();
+  if (items.length === 0) { alert('Keine Artikel ausgewählt.'); return; }
+  if (!window.jspdf || !window.jspdf.jsPDF) { alert('PDF-Bibliothek nicht geladen. Bitte Internetverbindung prüfen.'); return; }
+  const store = storeNameInput.value.trim() || '(kein Store-Name)';
+  const comment = document.getElementById('orderComment').value.trim();
+  // Exakt dasselbe PDF wie beim Senden (ohne Lieferant)
+  const doc = buildPdf(store, fmtDate(orderDateEl.value), items, lastOrderNumber || 'Entwurf', false, comment);
+  doc.autoPrint(); // öffnet beim Laden direkt den Druckdialog
+  const url = URL.createObjectURL(doc.output('blob'));
+  const w = window.open(url, '_blank');
+  if (!w) alert('Pop-up wurde blockiert. Bitte Pop-ups für diese Seite erlauben und erneut auf Drucken klicken.');
+}
+document.getElementById('printBtn').addEventListener('click', printOrder);
+document.getElementById('printBtn2').addEventListener('click', printOrder);
+
+/* ==========================================================
+   NEW ORDER / RESET
+   ========================================================== */
+document.getElementById('viewPdfBtn').addEventListener('click', () => {
+  if (lastPdfUrl) {
+    window.open(lastPdfUrl, '_blank');
+  } else {
+    alert('Keine Kopie verfügbar. Bitte Bestellung erneut senden.');
+  }
+});
+
+document.getElementById('newOrderBtn').addEventListener('click', () => {
+  allItems.forEach(it => { qtyState[it.key] = 0; kgState[it.key] = 0; });
+  storeNameInput.value = "";
+  document.getElementById('fillerEmail').value = "";
+  document.getElementById('orderComment').value = "";
+  if (lastPdfUrl) { URL.revokeObjectURL(lastPdfUrl); lastPdfUrl = null; }
+  lastOrderNumber = null;
+  document.getElementById('successOverlay').classList.remove('show');
+  renderCatalog("");
+  updateFooter();
+  window.scrollTo({top:0, behavior:'smooth'});
+});
+
+/* ==========================================================
+   EDIT EXISTING ORDER — upload the previously sent PDF,
+   auto-fill store/date/items so items can be added or removed,
+   then resend as a normal (corrected) order.
+   ========================================================== */
+if (window.pdfjsLib) {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+}
+
+async function extractTextFromPdf(file) {
+  const buf = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+  let fullText = "";
+  for (let p = 1; p <= pdf.numPages; p++) {
+    const page = await pdf.getPage(p);
+    const content = await page.getTextContent();
+    fullText += content.items.map(it => it.str).join(" ") + "\n";
+  }
+  return fullText;
+}
+
+function extractOrderItems(fullText) {
+  const found = [];
+  allItems.forEach(it => {
+    const idx = fullText.indexOf(it.name);
+    if (idx === -1) return;
+    // The Menge and Kg columns are the last two tokens printed for this row —
+    // each is either a number or a "-" placeholder (meaning 0). We must read
+    // them in that exact order, not just grab "the first number we see",
+    // otherwise a "-" in Menge with a real Kg value gets misread as the Menge.
+    const after = fullText.slice(idx + it.name.length, idx + it.name.length + 80);
+    const tokens = after.trim().split(/\s+/);
+    const valueTokens = tokens.filter(t => /^-$|^\d+([.,]\d+)?$/.test(t)).slice(0, 2);
+    let qty = 0, kg = 0;
+    if (valueTokens[0] && valueTokens[0] !== '-') qty = parseInt(valueTokens[0], 10) || 0;
+    if (valueTokens[1] && valueTokens[1] !== '-') kg = parseFloat(valueTokens[1].replace(',', '.')) || 0;
+    if (qty > 0 || kg > 0) {
+      found.push({ key: it.key, qty, kg });
+    }
+  });
+  return found;
+}
+
+const loadPdfBtn = document.getElementById('loadPdfBtn');
+const pdfUploadInput = document.getElementById('pdfUpload');
+
+loadPdfBtn.addEventListener('click', () => pdfUploadInput.click());
+
+pdfUploadInput.addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  loadPdfBtn.disabled = true;
+  loadPdfBtn.textContent = "Wird gelesen…";
+
+  try {
+    const text = await extractTextFromPdf(file);
+    const storeMatch = text.match(/Store:\s*(.+?)\s+Datum:/);
+    const dateMatch = text.match(/Datum:\s*(\d{2})\.(\d{2})\.(\d{4})/);
+    const items = extractOrderItems(text);
+
+    // Start from a clean slate, then apply what was found in the PDF
+    allItems.forEach(it => { qtyState[it.key] = 0; kgState[it.key] = 0; });
+    items.forEach(r => { qtyState[r.key] = r.qty; kgState[r.key] = r.kg || 0; });
+
+    if (storeMatch) storeNameInput.value = storeMatch[1].trim();
+    if (dateMatch) orderDateEl.value = `${dateMatch[3]}-${dateMatch[2]}-${dateMatch[1]}`;
+
+    renderCatalog(searchInput.value);
+    updateFooter();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    if (items.length === 0) {
+      alert("Konnte keine Artikel aus dieser PDF erkennen. Bitte Artikel manuell auswählen.");
+    } else {
+      alert(`Bestellung geladen: ${items.length} Artikel erkannt.\nDu kannst jetzt Artikel hinzufügen oder entfernen und die korrigierte Bestellung neu senden.\n\nBitte kurz prüfen, ob alle Mengen korrekt übernommen wurden.`);
+    }
+  } catch (err) {
+    console.error(err);
+    alert("PDF konnte nicht gelesen werden. Bitte prüfe, ob es die richtige Bestellungs-PDF von GD Traders ist.");
+  } finally {
+    loadPdfBtn.disabled = false;
+    loadPdfBtn.textContent = "📄 Bestehende Bestellung bearbeiten (PDF hochladen)";
+    pdfUploadInput.value = "";
+  }
+});
+
+/* ==========================================================
+   WHATSAPP IMPORT — paste/upload a WhatsApp order, auto-match
+   each line to the catalog, let the user check & correct,
+   then hand over to the normal "Bestellung ansehen" flow.
+   ========================================================== */
+
+// Common Hindi/Gujarati/German/English names -> exact catalog name
+const WA_ALIASES = {
+  "Okra":["bhindi","bhinda","bhindo","lady finger","ladyfinger","ladies finger"],
+  "Coriander":["dhaniya","dhania","dhana","dhanya","kothmir","kothambir","koriander","cilantro","dhaniya patta"],
+  "Mint":["pudina","phudina","fudina","minze"],
+  "Ginger":["adrak","adu","aadu","ingwer"],
+  "Garlic":["lasan","lahsun","lehsun","lasun","knoblauch"],
+  "Green Chili":["mirchi","mirch","marcha","marchu","chili","chilli","green chilli","hari mirch","chilis"],
+  "Red Chili":["lal mirchi","red chilli","lal mirch"],
+  "Lime":["limbu","nimbu","lemon","limette","limetten","limes"],
+  "Curry Leaves":["curry patta","kadi patta","kari patta","limdo","mitho limdo","meetha neem","curry leaf","curryblatter"],
+  "Tindory":["tindora","tondli","tindola","ivy gourd","kundru","tendli"],
+  "Guwar Phali":["guvar","gavar","guar","cluster beans","guwar","gawar"],
+  "Dudhi":["lauki","doodhi","dudhi","bottle gourd","ghiya"],
+  "Drumstick":["saragva","saragvo","sargva","moringa","sahjan","drumsticks","sargavo"],
+  "Drumstick Leaves":["moringa leaves","saragva pan","sahjan patta"],
+  "Karela":["karelu","karela","bitter gourd","karele"],
+  "Turia":["turai","turiya","ridge gourd","toori","turiya"],
+  "Galka":["sponge gourd","galku","gilki"],
+  "Eggplant":["baingan","ringan","ringna","brinjal","aubergine","auberginen","aubergines","bengan"],
+  "Arvi":["arbi","taro","colocasia","alvi"],
+  "Suran":["jimikand","yam","elephant foot","elephant yam"],
+  "Haldi":["turmeric","kurkuma","fresh turmeric","kachi haldi","haldar"],
+  "Parwal":["parval","parvar","pointed gourd","patal"],
+  "Papadi":["papdi","valor papdi","surti papdi"],
+  "Long Beans":["chora","chawli","chola beans","yard long beans"],
+  "Pumpkin":["kaddu","kolu","kurbis","kuerbis","sitaphal"],
+  "Snake Gourd":["padwal","chichinda","pudalangai"],
+  "Paneer":["panir","cottage cheese"],
+  "Pooja Coconut":["srifal","shreefal","shriphal","puja coconut","pooja nariyal","puja nariyal"],
+  "Coconut Drinking":["nariyal","naliyer","nariyel","tender coconut","green coconut","drinking coconut","kokosnuss"],
+  "Betel Leaves":["pan","paan","nagarvel","betel","pan patta","paan patta"],
+  "Banana Leaves":["keli patta","kela patta","banana leaf","bananenblatter"],
+  "Mango Leaves":["keri pan","aam patta","mango leaf","ambo pan"],
+  "Marigold Flowers":["galgota","genda","marigold","genda phool","galgota phool"],
+  "Lotus Flowers":["kamal","lotus"],
+  "Bel Patta":["bili patra","bilipatra","bel patra","belpatra","bel"],
+  "Tulsi Leaves":["tulsi","tulasi","holy basil"],
+  "Durva Grass":["durva","doob","dhro","durva ghas"],
+  "Methi":["fenugreek","methi leaves","bockshornklee"],
+  "Lalsaag":["lal saag","lal shak","red amaranth"],
+  "Poi Saag":["poi","malabar spinach"],
+  "Gongura Leaves":["gongura","ambadi","sorrel leaves"],
+  "Chickoo":["chiku","chikoo","sapota","sapodilla"],
+  "Custard Apple":["sitafal","sitaphal fruit","sharifa"],
+  "Guava":["jamfal","jamphal","amrood","amrud","guave","guaven"],
+  "Jackfruit":["kathal","fanas","jackfrucht"],
+  "Papaya Green":["raw papaya","kachi papaya","green papaya","kachu papayu"],
+  "Ripe Papaya":["papaya","pakka papaya","papayu"],
+  "Lychee":["litchi","lichi","litschi"],
+  "Amla":["amala","aamla","gooseberry"],
+  "Avocado":["avocados","avokado"],
+  "Green Mango":["kairi","kachi keri","raw mango","kachi kairi","kacha aam"],
+  "Alphonso Mango Big":["hapus big","hafus big"],
+  "Alphonso Mango Small":["hapus small","hafus small"],
+  "Plantin Green":["plantain","plantain green","kacha kela","raw banana"],
+  "Plantin Yellow":["plantain yellow","ripe plantain"],
+  "Ash Banana":["ash plantain"],
+  "Banana Flowers":["kele ka phool","banana flower","vazhaipoo"],
+  "Sweet Potato Red":["shakarkand","sakkariya","sweet potato","suskartoffel","suesskartoffel"],
+  "Onion Small":["shallot","shallots","sambar onion","small onion","chhoti pyaz"],
+  "Onion Big":["kanda","pyaz","pyaaz","dungri","onion","onions","zwiebel","zwiebeln","red onion"],
+  "Pink Ravaya":["pink ringan","pink baingan"],
+  "Thai Bananen":["thai banana","thai bananas"],
+  "Gulab Jam":["gulab jamun","gulabjamun","gulab jambu"],
+  "Gulab Jam Cream":["gulab jamun cream"],
+  "Rasagulla":["rasgulla","rasgula","rosogolla","rasagola"],
+  "Jilebi":["jalebi","jilebi","jalabi"],
+  "Laddu":["ladoo","laddoo","ladu","lado"],
+  "Mithai Mix":["mix mithai","mixed sweets","mithai"],
+  "Kala Jamun":["kalajamun","kala jam"],
+  "Gajar Halwa":["gajar ka halwa","carrot halwa","gajar halva"],
+  "Mattri (Extra)":["mathri","mattri","mathiya"],
+  "Cham Cham (Extra)":["chamcham","cham cham"],
+  "Samosa":["samosas","samose"],
+};
+
+const WA_UNITS_QTY = /^(x|box|boxes|boxen|bx|kiste|kisten|karton|kartons|ctn|ctns|carton|cartons|stk|stck|stuck|stueck|pcs|pc|piece|pieces|nos|no|pack|packs|pkt|packet|packets|bund|bunch|bunches|bundle|bundles|tray|trays|sack|sacke|bag|bags|bori|peti|petis|dozen|dz)$/;
+const WA_UNITS_KG = /^(kg|kgs|kilo|kilos|kilogramm|kilogram)$/;
+const WA_UNITS_G = /^(g|gr|gm|gms|gram|gramm|grams)$/;
+
+function waNorm(s) {
+  return String(s).toLowerCase()
+    .replace(/ä/g,'a').replace(/ö/g,'o').replace(/ü/g,'u').replace(/ß/g,'ss')
+    .normalize('NFD').replace(/[̀-ͯ]/g,'')
+    .replace(/[^a-z0-9]+/g,' ').trim();
+}
+
+function waLev(a, b) {
+  if (a === b) return 0;
+  const m = a.length, n = b.length;
+  if (!m) return n; if (!n) return m;
+  let prev = Array.from({length:n+1}, (_,j)=>j), cur = new Array(n+1);
+  for (let i = 1; i <= m; i++) {
+    cur[0] = i;
+    for (let j = 1; j <= n; j++) {
+      cur[j] = Math.min(prev[j]+1, cur[j-1]+1, prev[j-1] + (a[i-1]===b[j-1]?0:1));
+    }
+    [prev, cur] = [cur, prev];
+  }
+  return prev[n];
+}
+function waSim(a, b) { // 0..1 similarity of two tokens/strings
+  const L = Math.max(a.length, b.length);
+  return L ? 1 - waLev(a, b) / L : 1;
+}
+function waTokSim(a, b) {
+  if (a === b) return 1;
+  // plural / small typos: "mangoes" ~ "mango", "chilies" ~ "chili"
+  if (a.length >= 4 && b.length >= 4 && (a.startsWith(b) || b.startsWith(a)) && Math.abs(a.length-b.length) <= 2) return 0.95;
+  const s = waSim(a, b);
+  return (Math.min(a.length,b.length) >= 4 && s >= 0.75) ? s : 0;
+}
+
+// Build candidate list once: each catalog item + its aliases
+let WA_CANDS = null;
+function waCandidates() {
+  if (WA_CANDS) return WA_CANDS;
+  WA_CANDS = [];
+  allItems.forEach(it => {
+    const strs = [it.name, ...(WA_ALIASES[it.name] || [])];
+    strs.forEach(s => {
+      const n = waNorm(s.replace(/\(.*?\)/g, ''));
+      if (n) WA_CANDS.push({ key: it.key, name: it.name, norm: n, toks: n.split(' ') });
+    });
+  });
+  return WA_CANDS;
+}
+
+function waMatch(text) {
+  const n = waNorm(text);
+  if (!n) return { best: null, score: 0, second: 0 };
+  const toks = n.split(' ').filter(t => t.length > 1 || /\d/.test(t));
+  const scores = {}; // key -> best score
+  waCandidates().forEach(c => {
+    let s;
+    if (c.norm === n) s = 1;
+    else {
+      // how many candidate tokens appear in the text, and how much of the text is explained
+      let candHit = 0; const used = new Set();
+      c.toks.forEach(ct => {
+        let best = 0, bi = -1;
+        toks.forEach((t, i) => { const v = waTokSim(ct, t); if (v > best) { best = v; bi = i; } });
+        candHit += best; if (bi >= 0 && best > 0) used.add(bi);
+      });
+      const candCov = candHit / c.toks.length;
+      const textCov = toks.length ? used.size / toks.length : 0;
+      s = 0.65 * candCov + 0.35 * textCov;
+      // whole-string fuzzy (catches "corriender", "bhindy")
+      s = Math.max(s, waSim(c.norm, n) * 0.95);
+    }
+    if (!scores[c.key] || s > scores[c.key]) scores[c.key] = s;
+  });
+  const ranked = Object.entries(scores).sort((a,b) => b[1]-a[1]);
+  return { best: ranked[0] ? ranked[0][0] : null, score: ranked[0] ? ranked[0][1] : 0, second: ranked[1] ? ranked[1][1] : 0 };
+}
+
+function waCleanText(raw) {
+  return String(raw)
+    .replace(/[‎‏‪-‮﻿]/g, '')
+    .replace(/\r/g, '');
+}
+
+const WA_SKIP = /(medien ausgelassen|media omitted|bild weggelassen|image omitted|nachricht wurde geloscht|message was deleted|ende-zu-ende|end-to-end|verschlusselt|encrypted|hat die gruppe|created group|added|hinzugefugt|<.*?>)/i;
+
+function waSplitLines(raw) {
+  const out = [];
+  waCleanText(raw).split('\n').forEach(line => {
+    let l = line;
+    // WhatsApp export prefixes:  [22.10.26, 09:15:23] Name: ...   |   22/10/2026, 09:15 - Name: ...
+    l = l.replace(/^\s*\[?\d{1,4}[./-]\d{1,2}[./-]\d{1,4},?\s+\d{1,2}:\d{2}(?::\d{2})?\s*(?:[ap]\.?\s?m\.?)?\]?\s*(?:[-–]\s*)?(?:[^:]{1,40}:\s)?/i, '');
+    if (WA_SKIP.test(waNorm(l)) && !/\d/.test(l.replace(/\d{1,2}:\d{2}/g,''))) return;
+    if (/<.*?(ausgelassen|omitted).*?>/i.test(l)) return;
+    // timestamps from screenshots ("09:15", "9:15 PM") and read ticks
+    l = l.replace(/\b\d{1,2}:\d{2}(?:\s?[ap]\.?m\.?)?\b/gi, ' ').replace(/[✓✔]+/g, ' ');
+    // emojis & bullets
+    l = l.replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, ' ').replace(/^\s*(?:[-*•·>]|\d+[.)](?=\s+\D))\s*/, '');
+    // several items in one line: "Okra 5, Mint 3; Ginger 2kg"  (keep decimal commas like 1,5)
+    l.split(/;|,(?!\d)|\s\+\s|\s\/\s|\s&\s|\s\|\s/).forEach(part => {
+      const p = part.trim();
+      if (p) out.push({ orig: p, line: line.trim() });
+    });
+  });
+  return out;
+}
+
+function waParseQty(part) {
+  let s = ' ' + part.replace(/½/g, '0.5').replace(/¼/g, '0.25').replace(/(\d)\s*\/\s*(\d)/g, (m,a,b) => String(+a/+b)) + ' ';
+  // separate glued numbers & units: "5kg" "3x" "x3" "10box"
+  s = s.replace(/(\d)([a-zA-Z])/g, '$1 $2').replace(/\b(x)(\d)/gi, '$1 $2');
+  const raw = s.trim().split(/\s+/);
+  let qty = 0, kg = 0, hasNum = false;
+  const rest = [];
+  for (let i = 0; i < raw.length; i++) {
+    const t = raw[i];
+    const tn = waNorm(t);
+    const num = /^\d+(?:[.,]\d+)?$/.test(t) ? parseFloat(t.replace(',', '.')) : null;
+    if (num !== null) {
+      hasNum = true;
+      const next = waNorm(raw[i+1] || ''), prev = waNorm(raw[i-1] || '');
+      if (WA_UNITS_KG.test(next)) { kg += num; i++; continue; }
+      if (WA_UNITS_G.test(next)) { kg += num / 1000; i++; continue; }
+      if (WA_UNITS_QTY.test(next)) { qty += Math.round(num); i++; continue; }
+      if (prev === 'x') { qty += Math.round(num); continue; }
+      if (qty === 0) qty = Math.round(num); else if (kg === 0) kg = num;
+      continue;
+    }
+    if (tn === 'x' || /^[-=:]+$/.test(t)) continue;
+    if (WA_UNITS_QTY.test(tn) || WA_UNITS_KG.test(tn)) continue;
+    rest.push(t);
+  }
+  kg = Math.round(kg * 100) / 100;
+  return { qty, kg, hasNum, name: rest.join(' ') };
+}
+
+let waRows = [];     // {orig, key|null, qty, kg, status}
+let waIgnored = [];  // lines without order content
+
+function waAnalyse(raw) {
+  waRows = []; waIgnored = [];
+  waSplitLines(raw).forEach(({orig}) => {
+    const p = waParseQty(orig);
+    const m = waMatch(p.name);
+    const clearWinner = m.score - m.second >= 0.06;
+    let status;
+    if (m.score >= 0.85 && clearWinner && p.hasNum) status = 'ok';
+    else if (m.score >= 0.6) status = 'unsure';
+    else status = 'unmatched';
+
+    if (!p.hasNum && status !== 'ok' && m.score < 0.8) { waIgnored.push(orig); return; }
+    if (!p.hasNum && !p.name) { waIgnored.push(orig); return; }
+    let qty = p.qty, kg = p.kg;
+    if (!p.hasNum) { qty = 1; status = 'unsure'; }
+    waRows.push({ orig, key: status === 'unmatched' ? '' : m.best, qty, kg, status });
+  });
+}
+
+/* ---------- UI ---------- */
+const waOverlay = document.getElementById('waOverlay');
+const waText = document.getElementById('waText');
+const waStatus = document.getElementById('waStatus');
+const waStep1 = document.getElementById('waStep1');
+const waStep2 = document.getElementById('waStep2');
+const waList = document.getElementById('waList');
+
+function waShowStep(n) {
+  waStep1.style.display = n === 1 ? '' : 'none';
+  waStep2.style.display = n === 2 ? '' : 'none';
+  document.getElementById('waTitle').textContent = n === 1 ? 'WhatsApp-Bestellung' : 'Erkannte Artikel prüfen';
+  waOverlay.querySelector('.sheet').scrollTop = 0;
+}
+
+document.getElementById('waOpenBtn').addEventListener('click', () => {
+  waStatus.textContent = ''; waStatus.className = 'status-msg';
+  waShowStep(1);
+  waOverlay.classList.add('show');
+  setTimeout(() => waText.focus(), 50);
+});
+document.getElementById('waClose').addEventListener('click', () => waOverlay.classList.remove('show'));
+document.getElementById('waBack').addEventListener('click', () => waShowStep(1));
+
+function waSelectHtml(selectedKey) {
+  let h = `<option value="">— nicht bestellen / ignorieren —</option>`;
+  CATALOG.forEach((cat, ci) => {
+    h += `<optgroup label="${cat.name}">`;
+    cat.items.forEach((name, ii) => {
+      const k = ci + '-' + ii;
+      h += `<option value="${k}"${k === selectedKey ? ' selected' : ''}>${name}</option>`;
+    });
+    h += `</optgroup>`;
+  });
+  return h;
+}
+
+function waEsc(s) { return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+function waRenderReview() {
+  const ok = waRows.filter(r => r.status === 'ok').length;
+  const unsure = waRows.filter(r => r.status === 'unsure').length;
+  const unm = waRows.filter(r => r.status === 'unmatched').length;
+  document.getElementById('waSummary').innerHTML =
+    `<b>${waRows.length} Positionen</b> gefunden: ${ok} sicher erkannt` +
+    (unsure ? ` · <b style="color:#8a6512">${unsure} bitte prüfen</b>` : '') +
+    (unm ? ` · <b style="color:var(--danger)">${unm} nicht zugeordnet</b>` : '') +
+    `<br>Artikel, Menge und kg kannst du hier direkt ändern.`;
+
+  waList.innerHTML = '';
+  if (!waRows.length) waList.innerHTML = `<div class="empty-note">Keine Artikel erkannt. Bitte Text prüfen.</div>`;
+  waRows.forEach((r, i) => {
+    const label = { ok: 'erkannt', unsure: 'prüfen', unmatched: 'nicht zugeordnet' }[r.status];
+    const row = document.createElement('div');
+    row.className = 'wa-row ' + r.status;
+    row.innerHTML = `
+      <div class="wa-orig"><span>„${waEsc(r.orig)}“</span><span class="wa-badge ${r.status}">${label}</span></div>
+      <div class="wa-ctrl">
+        <select>${waSelectHtml(r.key)}</select>
+        <label class="wa-num"><input type="number" class="wq" min="0" step="1" value="${r.qty || ''}" placeholder="0">Menge</label>
+        <label class="wa-num"><input type="number" class="wk" min="0" step="0.5" value="${r.kg || ''}" placeholder="0">kg</label>
+      </div>`;
+    row.querySelector('select').addEventListener('change', e => {
+      r.key = e.target.value;
+      if (r.key && r.status !== 'ok') { r.status = 'ok'; row.className = 'wa-row ok'; const b = row.querySelector('.wa-badge'); b.className = 'wa-badge ok'; b.textContent = 'geprüft'; }
+    });
+    row.querySelector('.wq').addEventListener('input', e => { const v = parseInt(e.target.value, 10); r.qty = isNaN(v) || v < 0 ? 0 : v; });
+    row.querySelector('.wk').addEventListener('input', e => { const v = parseFloat(String(e.target.value).replace(',', '.')); r.kg = isNaN(v) || v < 0 ? 0 : v; });
+    waList.appendChild(row);
+  });
+
+  const ib = document.getElementById('waIgnoredBox');
+  if (waIgnored.length) {
+    ib.style.display = '';
+    document.getElementById('waIgnoredSummary').textContent = `${waIgnored.length} Zeilen ohne Bestellinhalt übersprungen (Grüße o. ä.) – anzeigen`;
+    document.getElementById('waIgnoredList').innerHTML = waIgnored.map(l => `<div>${waEsc(l)}</div>`).join('');
+  } else ib.style.display = 'none';
+
+  // default: replace only if user had nothing selected yet
+  document.getElementById('waReplace').checked = true;
+}
+
+document.getElementById('waParseBtn').addEventListener('click', () => {
+  const raw = waText.value.trim();
+  if (!raw) { waStatus.textContent = 'Bitte zuerst die WhatsApp-Nachricht einfügen oder hochladen.'; waStatus.className = 'status-msg err'; return; }
+  waAnalyse(raw);
+  waRenderReview();
+  waShowStep(2);
+});
+
+function waApply(openReview) {
+  const unresolved = waRows.filter(r => r.status === 'unsure' && r.key);
+  const replace = document.getElementById('waReplace').checked;
+  if (replace) allItems.forEach(it => { qtyState[it.key] = 0; kgState[it.key] = 0; });
+  let applied = 0;
+  const notMapped = [];
+  waRows.forEach(r => {
+    if (r.key && (r.qty > 0 || r.kg > 0)) {
+      qtyState[r.key] = (qtyState[r.key] || 0) + (r.qty || 0);
+      kgState[r.key] = Math.round(((kgState[r.key] || 0) + (r.kg || 0)) * 100) / 100;
+      applied++;
+    } else if (!r.key) notMapped.push(r.orig);
+  });
+  const commentEl = document.getElementById('orderComment');
+  if (document.getElementById('waNote').checked && notMapped.length) {
+    const note = 'Aus WhatsApp, nicht im Katalog: ' + notMapped.join('; ');
+    commentEl.value = commentEl.value.trim() ? commentEl.value.trim() + '\n' + note : note;
+  }
+  waOverlay.classList.remove('show');
+  renderCatalog(searchInput.value);
+  updateFooter();
+  if (openReview && getSelectedItems().length) {
+    renderReview();
+    statusMsg.textContent = ''; statusMsg.className = 'status-msg';
+    reviewOverlay.classList.add('show');
+  } else {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  return { applied, unresolved: unresolved.length };
+}
+document.getElementById('waApplyReview').addEventListener('click', () => waApply(true));
+document.getElementById('waApplyList').addEventListener('click', () => waApply(false));
+
+/* ---------- File upload: .txt, .zip (WhatsApp export), screenshot (OCR) ---------- */
+function waLoadScript(src) {
+  return new Promise((res, rej) => {
+    if (document.querySelector(`script[src="${src}"]`)) return res();
+    const s = document.createElement('script');
+    s.src = src; s.onload = res; s.onerror = () => rej(new Error('Script konnte nicht geladen werden'));
+    document.head.appendChild(s);
+  });
+}
+
+const waFile = document.getElementById('waFile');
+const waFileBtn = document.getElementById('waFileBtn');
+waFileBtn.addEventListener('click', () => waFile.click());
+waFile.addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  waFileBtn.disabled = true;
+  waStatus.className = 'status-msg';
+  try {
+    let text = '';
+    const name = file.name.toLowerCase();
+    if (name.endsWith('.zip') || file.type === 'application/zip') {
+      waStatus.textContent = 'Chat-Export wird entpackt…';
+      await waLoadScript('https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js');
+      const zip = await JSZip.loadAsync(file);
+      const txt = Object.values(zip.files).find(f => !f.dir && /\.txt$/i.test(f.name));
+      if (!txt) throw new Error('Keine .txt-Datei im ZIP gefunden.');
+      text = await txt.async('string');
+    } else if (file.type.startsWith('image/')) {
+      waStatus.textContent = 'Screenshot wird gelesen (Texterkennung, ca. 10–30 Sek.)…';
+      await waLoadScript('https://cdn.jsdelivr.net/npm/tesseract.js@5.1.0/dist/tesseract.min.js');
+      const result = await Tesseract.recognize(file, 'eng');
+      text = result.data.text;
+    } else {
+      text = await file.text();
+    }
+    // Long chat exports: only keep the last 60 lines (the latest order) — user can trim further
+    const lines = waCleanText(text).split('\n').filter(l => l.trim());
+    if (lines.length > 60) {
+      text = lines.slice(-60).join('\n');
+      waStatus.textContent = `Datei geladen – nur die letzten 60 Zeilen übernommen. Bitte alles löschen, was nicht zur aktuellen Bestellung gehört, dann „Artikel erkennen“.`;
+    } else {
+      text = lines.join('\n');
+      waStatus.textContent = 'Datei geladen. Bitte Text kurz prüfen und dann „Artikel erkennen“ tippen.';
+    }
+    waText.value = text;
+  } catch (err) {
+    console.error(err);
+    waStatus.textContent = 'Datei konnte nicht gelesen werden: ' + (err.message || err) + ' – bitte Nachricht kopieren und einfügen.';
+    waStatus.className = 'status-msg err';
+  } finally {
+    waFileBtn.disabled = false;
+    waFile.value = '';
+  }
+});
+
+/* ==========================================================
+   INIT
+   ========================================================== */
+renderCatalog("");
+updateFooter();
+</script>
+</body>
+</html>
