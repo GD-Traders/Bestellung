@@ -1180,6 +1180,8 @@ function waParseQty(part) {
   let s = ' ' + part.replace(/½/g, '0.5').replace(/¼/g, '0.25').replace(/(\d)\s*\/\s*(\d)/g, (m,a,b) => String(+a/+b)) + ' ';
   // separate glued numbers & units: "5kg" "3x" "x3" "10box"
   s = s.replace(/(\d)([a-zA-Z])/g, '$1 $2').replace(/\b(x)(\d)/gi, '$1 $2');
+  // Doppelpunkt/Gleich/Bindestrich direkt an Zahl lösen: "lauki :1 box" -> "lauki : 1 box"
+  s = s.replace(/([:=\-])(\d)/g, '$1 $2').replace(/(\d)([:=])/g, '$1 $2');
   const raw = s.trim().split(/\s+/);
   let qty = 0, kg = 0, hasNum = false;
   const rest = [];
